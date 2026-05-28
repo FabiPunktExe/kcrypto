@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.multiplatformLibrary)
-    `maven-publish`
 }
 
 repositories {
@@ -32,13 +31,5 @@ kotlin {
     wasmJs {
         browser()
         binaries.library()
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["kotlin"])
-        }
     }
 }

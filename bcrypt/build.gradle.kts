@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.multiplatformLibrary)
-    `maven-publish`
 }
 
 repositories {
@@ -50,14 +49,6 @@ kotlin {
         }
         webMain.dependencies {
             implementation(npm("bcryptjs", "3.0.3"))
-        }
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["kotlin"])
         }
     }
 }
