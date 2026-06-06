@@ -33,6 +33,18 @@ kotlin {
         binaries.library()
     }
 
+    mingwX64 {
+        compilations["main"].cinterops {
+            create("bcrypt") {
+                definitionFile = file("src/nativeInterop/cinterop/bcrypt.def")
+            }
+        }
+        binaries {
+            sharedLib()
+            staticLib()
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core)

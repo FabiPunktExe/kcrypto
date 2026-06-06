@@ -32,4 +32,23 @@ kotlin {
         browser()
         binaries.library()
     }
+
+    mingwX64 {
+        binaries {
+            sharedLib()
+            staticLib()
+        }
+    }
+
+    sourceSets {
+        jvmMain.dependencies {
+            implementation(libs.kotlinx.coroutines.core)
+        }
+        androidMain.dependencies {
+            implementation(libs.kotlinx.coroutines.core)
+        }
+        nativeMain.dependencies {
+            implementation(libs.kotlinx.coroutines.core)
+        }
+    }
 }

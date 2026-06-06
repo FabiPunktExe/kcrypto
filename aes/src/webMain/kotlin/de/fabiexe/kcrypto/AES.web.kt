@@ -1,5 +1,6 @@
 package de.fabiexe.kcrypto
 
+import js.buffer.ArrayBuffer
 import js.buffer.BufferSource
 import js.buffer.toByteArray
 import js.typedarrays.Uint8Array
@@ -10,18 +11,23 @@ import web.encoding.TextEncoder
 
 @Suppress("unused")
 @OptIn(ExperimentalWasmJsInterop::class)
-fun newPbkdf2Params(name: String, hash: HashAlgorithmIdentifier, iterations: Int, salt: BufferSource): Pbkdf2Params =
+private fun newPbkdf2Params(name: String, hash: HashAlgorithmIdentifier, iterations: Int, salt: BufferSource): Pbkdf2Params =
     js("({ name: name, hash: hash, iterations: iterations, salt: salt })")
 
 @Suppress("unused")
 @OptIn(ExperimentalWasmJsInterop::class)
-fun newAesDerivedKeyParams(name: String, length: Int): AesDerivedKeyParams =
+private fun newAesDerivedKeyParams(name: String, length: Int): AesDerivedKeyParams =
     js("({ name: name, length: length })")
 
 @Suppress("unused")
 @OptIn(ExperimentalWasmJsInterop::class)
 fun newAesGcmParams(name: String, iv: BufferSource, tagLength: Int): AesGcmParams =
     js("({ name: name, iv: iv, tagLength: tagLength })")
+
+@Suppress("unused")
+@OptIn(ExperimentalWasmJsInterop::class)
+private fun newAesKeyGenParams(name: String, length: Int): AesKeyGenParams =
+    js("({ name: name, length: length })")
 
 actual open class AES_GCM actual constructor(
     val keyLength: Int,
@@ -30,29 +36,60 @@ actual open class AES_GCM actual constructor(
     val iterationCount: Int,
     val tagLength: Int
 ) : AES {
+    @OptIn(ExperimentalWasmJsInterop::class)
     actual override suspend fun encrypt(data: ByteArray, key: ByteArray): ByteArray {
         val salt = crypto.getRandomValues(Uint8Array(saltLength))
         val iv = crypto.getRandomValues(Uint8Array(ivLength))
-        val secretKey = deriveKey(key, salt)
-        val encryptedData = crypto.subtle.encrypt(
-            newAesGcmParams("AES-GCM", iv, tagLength),
-            secretKey,
-            TextEncoder().encode(data.decodeToString())
+        val cryptoKey = crypto.subtle.importKey(
+            KeyFormat.raw,
+            key.toUint8Array(),
+            "AES-GCM",
+            false,
+            listOf(KeyUsage.encrypt).toJsArray()
         )
+        return encrypt(data, cryptoKey, salt, iv.toUint8Array())
+    }
+
+    actual override suspend fun encryptWithPassword(data: ByteArray, password: ByteArray): ByteArray {
+        val salt = crypto.getRandomValues(Uint8Array(saltLength))
+        val iv = crypto.getRandomValues(Uint8Array(ivLength))
+        val cryptoKey = deriveKey(password, salt)
+        return encrypt(data, cryptoKey, salt, iv)
+    }
+
+    private suspend fun encrypt(data: ByteArray, key: CryptoKey, salt: Uint8Array<ArrayBuffer>, iv: Uint8Array<ArrayBuffer>): ByteArray {
+        val algorithm = newAesGcmParams("AES-GCM", iv, tagLength)
+        val encodedData = TextEncoder().encode(data.decodeToString())
+        val encryptedData = crypto.subtle.encrypt(algorithm, key, encodedData)
         return salt.toByteArray() + iv.toByteArray() + encryptedData.toByteArray()
     }
 
+    @OptIn(ExperimentalWasmJsInterop::class)
     actual override suspend fun decrypt(data: ByteArray, key: ByteArray): ByteArray {
         val salt = data.copyOfRange(0, saltLength).toUint8Array()
         val iv = data.copyOfRange(saltLength, saltLength + ivLength).toUint8Array()
-        val encryptedData = data.copyOfRange(saltLength + ivLength, data.size).toUint8Array()
-        val secretKey = deriveKey(key, salt)
-        val decryptedData = crypto.subtle.decrypt(
-            newAesGcmParams("AES-GCM", iv, tagLength),
-            secretKey,
-            encryptedData
+        val encryptedData = data.copyOfRange(saltLength + ivLength, data.size)
+        val cryptoKey = crypto.subtle.importKey(
+            KeyFormat.raw,
+            key.toUint8Array(),
+            "AES-GCM",
+            false,
+            listOf(KeyUsage.decrypt).toJsArray()
         )
-        return decryptedData.toByteArray()
+        return decrypt(encryptedData, cryptoKey, iv, salt)
+    }
+
+    actual override suspend fun decryptWithPassword(data: ByteArray, password: ByteArray): ByteArray {
+        val salt = data.copyOfRange(0, saltLength).toUint8Array()
+        val iv = data.copyOfRange(saltLength, saltLength + ivLength).toUint8Array()
+        val encryptedData = data.copyOfRange(saltLength + ivLength, data.size)
+        val cryptoKey = deriveKey(password, salt)
+        return decrypt(encryptedData, cryptoKey, iv, salt)
+    }
+
+    private suspend fun decrypt(data: ByteArray, key: CryptoKey, iv: Uint8Array<ArrayBuffer>, salt: Uint8Array<ArrayBuffer>): ByteArray {
+        val algorithm = newAesGcmParams("AES-GCM", iv, tagLength)
+        return crypto.subtle.decrypt(algorithm, key, data.toUint8Array()).toByteArray()
     }
 
     @OptIn(ExperimentalWasmJsInterop::class)
@@ -71,5 +108,13 @@ actual open class AES_GCM actual constructor(
             true,
             listOf(KeyUsage.encrypt, KeyUsage.decrypt).toJsArray()
         )
+    }
+
+    @OptIn(ExperimentalWasmJsInterop::class)
+    actual override suspend fun generateKey(): ByteArray {
+        val params = newAesKeyGenParams("AES-GCM", keyLength)
+        val keyUsages = listOf(KeyUsage.encrypt, KeyUsage.decrypt).toJsArray()
+        val key = crypto.subtle.generateKey(params, true, keyUsages)
+        return crypto.subtle.exportKey(KeyFormat.raw, key).toByteArray()
     }
 }

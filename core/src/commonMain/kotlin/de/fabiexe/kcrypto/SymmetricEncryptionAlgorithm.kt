@@ -2,7 +2,7 @@ package de.fabiexe.kcrypto
 
 interface SymmetricEncryptionAlgorithm {
     /**
-     * Encrypt the given data using the provided key
+     * Encrypt the given data using the provided key and initialization vector
      *
      * @param data The data to be encrypted
      * @param key The key to be used for encryption
@@ -11,34 +11,27 @@ interface SymmetricEncryptionAlgorithm {
     suspend fun encrypt(data: ByteArray, key: ByteArray): ByteArray
 
     /**
-     * Encrypt the given data using the provided key
+     * Encrypt the given data using the provided password
      *
      * @param data The data to be encrypted
-     * @param key The key to be used for encryption
+     * @param password The password to be used for encryption
      * @return The encrypted data
      */
-    suspend fun encrypt(data: String, key: ByteArray): ByteArray = encrypt(data.encodeToByteArray(), key)
+    suspend fun encryptWithPassword(data: ByteArray, password: ByteArray): ByteArray
 
     /**
-     * Encrypt the given data using the provided key
+     * Encrypt the given data using the provided password
      *
      * @param data The data to be encrypted
-     * @param key The key to be used for encryption
+     * @param password The password to be used for encryption
      * @return The encrypted data
      */
-    suspend fun encrypt(data: ByteArray, key: String): ByteArray = encrypt(data, key.encodeToByteArray())
+    suspend fun encryptWithPassword(data: ByteArray, password: String): ByteArray {
+        return encryptWithPassword(data, password.encodeToByteArray())
+    }
 
     /**
-     * Encrypt the given data using the provided key
-     *
-     * @param data The data to be encrypted
-     * @param key The key to be used for encryption
-     * @return The encrypted data
-     */
-    suspend fun encrypt(data: String, key: String): ByteArray = encrypt(data.encodeToByteArray(), key.encodeToByteArray())
-
-    /**
-     * Decrypt the given data using the provided key
+     * Decrypt the given data using the provided key and initialization vector
      *
      * @param data The data to be decrypted
      * @param key The key to be used for decryption
@@ -47,29 +40,29 @@ interface SymmetricEncryptionAlgorithm {
     suspend fun decrypt(data: ByteArray, key: ByteArray): ByteArray
 
     /**
-     * Decrypt the given data using the provided key
+     * Decrypt the given data using the provided password
      *
      * @param data The data to be decrypted
-     * @param key The key to be used for decryption
+     * @param password The password to be used for decryption
      * @return The decrypted data
      */
-    suspend fun decrypt(data: ByteArray, key: String): ByteArray = decrypt(data, key.encodeToByteArray())
+    suspend fun decryptWithPassword(data: ByteArray, password: ByteArray): ByteArray
 
     /**
-     * Decrypt the given data using the provided key
+     * Decrypt the given data using the provided password
      *
      * @param data The data to be decrypted
-     * @param key The key to be used for decryption
-     * @return The decrypted data as a string
+     * @param password The key to be used for decryption
+     * @return The decrypted data
      */
-    suspend fun decryptToString(data: ByteArray, key: ByteArray): String = decrypt(data, key).decodeToString()
+    suspend fun decryptWithPassword(data: ByteArray, password: String): ByteArray {
+        return decryptWithPassword(data, password.encodeToByteArray())
+    }
 
     /**
-     * Decrypt the given data using the provided key
+     * Generate a random key for encryption
      *
-     * @param data The data to be decrypted
-     * @param key The key to be used for decryption
-     * @return The decrypted data as a string
+     * @return The generated key
      */
-    suspend fun decryptToString(data: ByteArray, key: String): String = decrypt(data, key).decodeToString()
+    suspend fun generateKey(): ByteArray
 }

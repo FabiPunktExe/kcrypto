@@ -30,5 +30,8 @@ expect open class AES_GCM(
     tagLength: Int = 128
 ) : AES {
     override suspend fun encrypt(data: ByteArray, key: ByteArray): ByteArray
+    override suspend fun encryptWithPassword(data: ByteArray, password: ByteArray): ByteArray
     override suspend fun decrypt(data: ByteArray, key: ByteArray): ByteArray
+    override suspend fun decryptWithPassword(data: ByteArray, password: ByteArray): ByteArray
+    override suspend fun generateKey(): ByteArray
 }
