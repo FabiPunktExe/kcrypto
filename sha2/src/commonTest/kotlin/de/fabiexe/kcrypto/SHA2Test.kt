@@ -12,16 +12,16 @@ class SHA2Test {
 
     @Test
     fun testSHA256() = runTest {
-        assertContentEquals(sha256.hexToByteArray(), SHA2.SHA256.hash(data))
+        assertContentEquals(sha256.hexToByteArray(), SHA2.SHA256.hash(data.encodeToByteArray()))
     }
 
     @Test
     fun testSHA384() = runTest {
-        assertContentEquals(sha384.hexToByteArray(), SHA2.SHA384.hash(data))
+        assertContentEquals(sha384.hexToByteArray(), SHA2.SHA384.hash(data.encodeToByteArray()))
     }
 
     @Test
     fun testSHA512() = runTest {
-        assertContentEquals(sha512.hexToByteArray(), SHA2.SHA512.hash(data))
+        assertContentEquals(sha512.hexToByteArray(), SHA2.SHA512.hash(data.encodeToByteArray()))
     }
 }

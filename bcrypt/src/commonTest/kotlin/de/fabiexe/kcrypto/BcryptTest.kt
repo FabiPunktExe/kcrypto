@@ -8,7 +8,7 @@ class BcryptTest {
     @Test
     fun test() = runTest {
         val password = "password"
-        val hash = Bcrypt.hash(password)
+        val hash = Bcrypt.hash(password.encodeToByteArray())
         assertTrue(Bcrypt.verify(password, hash))
     }
 }
