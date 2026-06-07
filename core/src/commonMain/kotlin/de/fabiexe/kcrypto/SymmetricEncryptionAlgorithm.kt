@@ -2,7 +2,7 @@ package de.fabiexe.kcrypto
 
 interface SymmetricEncryptionAlgorithm {
     /**
-     * Encrypt the given data using the provided key and initialization vector
+     * Encrypt the given data using the provided key
      *
      * @param data The data to be encrypted
      * @param key The key to be used for encryption
@@ -31,7 +31,7 @@ interface SymmetricEncryptionAlgorithm {
     }
 
     /**
-     * Decrypt the given data using the provided key and initialization vector
+     * Decrypt the given data using the provided key
      *
      * @param data The data to be decrypted
      * @param key The key to be used for decryption

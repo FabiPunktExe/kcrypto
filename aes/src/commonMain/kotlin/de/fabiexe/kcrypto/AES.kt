@@ -6,6 +6,7 @@ package de.fabiexe.kcrypto
  * @see AES.GCM256
  * @see AES.encrypt
  * @see AES.decrypt
+ * @see AES.generateKey
  */
 interface AES : SymmetricEncryptionAlgorithm {
     companion object {

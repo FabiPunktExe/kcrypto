@@ -112,9 +112,9 @@ actual open class AES_GCM actual constructor(
 
     @OptIn(ExperimentalWasmJsInterop::class)
     actual override suspend fun generateKey(): ByteArray {
-        val params = newAesKeyGenParams("AES-GCM", keyLength)
+        val algorithm = newAesKeyGenParams("AES-GCM", keyLength)
         val keyUsages = listOf(KeyUsage.encrypt, KeyUsage.decrypt).toJsArray()
-        val key = crypto.subtle.generateKey(params, true, keyUsages)
+        val key = crypto.subtle.generateKey(algorithm, true, keyUsages)
         return crypto.subtle.exportKey(KeyFormat.raw, key).toByteArray()
     }
 }
